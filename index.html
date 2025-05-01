@@ -2,52 +2,70 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Extrair E-mails do CSV</title>
+  <title>Extrair E-mails do PDF</title>
 </head>
 <body>
-  <h2>Selecionar arquivo CSV</h2>
-  <input type="file" id="csvFile" accept=".csv">
+  <h2>Selecionar arquivo PDF</h2>
+  <input type="file" id="pdfFile" accept=".pdf">
   <button onclick="extrairEmails()">Extrair e baixar .txt</button>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
   <script>
     function extrairEmails() {
-      const input = document.getElementById('csvFile');
+      const input = document.getElementById('pdfFile');
       const file = input.files[0];
 
       if (!file) {
-        alert("Selecione um arquivo CSV.");
+        alert("Selecione um arquivo PDF.");
         return;
       }
 
       const reader = new FileReader();
       reader.onload = function(e) {
-        const linhas = e.target.result.split(/\r?\n/);
-        const cabecalho = linhas[0].split(",");
-        const posEmail = cabecalho.findIndex(c => c.trim().toLowerCase() === "email");
+        const typedArray = new Uint8Array(e.target.result);
 
-        if (posEmail === -1) {
-          alert("Coluna 'email' não encontrada.");
-          return;
-        }
+        // Usando pdf.js para ler o PDF
+        pdfjsLib.getDocument(typedArray).promise.then(function(pdf) {
+          let texto = '';
+          let emails = [];
+          
+          // Loop por todas as páginas do PDF
+          const numPages = pdf.numPages;
+          let paginaAtual = 1;
 
-        const emails = [];
+          function processarPagina() {
+            pdf.getPage(paginaAtual).then(function(page) {
+              page.getTextContent().then(function(textContent) {
+                const textoPagina = textContent.items.map(item => item.str).join(' ');
+                texto += textoPagina;
 
-        for (let i = 1; i < linhas.length; i++) {
-          const cols = linhas[i].split(",");
-          if (cols.length > posEmail) {
-            const email = cols[posEmail].trim();
-            if (email) emails.push(email);
+                // Se não for a última página, processar a próxima
+                if (paginaAtual < numPages) {
+                  paginaAtual++;
+                  processarPagina();
+                } else {
+                  // Após extrair o texto de todas as páginas, extrair os e-mails
+                  const regex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+                  emails = texto.match(regex) || [];
+                  
+                  // Criando o arquivo .txt
+                  const blob = new Blob([emails.join("\n")], { type: "text/plain" });
+                  const link = document.createElement("a");
+                  link.href = URL.createObjectURL(blob);
+                  link.download = "emails_extraidos.txt";
+                  link.click();
+                }
+              });
+            });
           }
-        }
 
-        const blob = new Blob([emails.join("\n")], { type: "text/plain" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "emails_extraidos.txt";
-        link.click();
+          processarPagina();
+        }).catch(function(error) {
+          alert("Erro ao processar o PDF: " + error.message);
+        });
       };
 
-      reader.readAsText(file);
+      reader.readAsArrayBuffer(file);
     }
   </script>
 </body>
