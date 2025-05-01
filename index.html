@@ -1,86 +1,108 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Extrair E-mails do PDF ou CSV</title>
-  
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f7fc;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      color: #333;
-    }
+    <meta charset="UTF-8">
+    <title>Extrair E-mails do PDF ou CSV</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
 
-    .container {
-      background-color: #fff;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 500px;
-    }
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 14px;
 
-    h2 {
-      text-align: center;
-      color: #18611b;
-      margin-bottom: 20px;
-    }
+            a {
+                color: #333;
+                text-decoration: none;
 
-    .section {
-      margin-bottom: 20px;
-    }
+                &:hover {
+                    color: black;
+                }
+            }
+        }
 
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
 
-    input[type="file"], input[type="text"] {
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 16px;
-    }
+        h2 {
+            text-align: center;
+            color: #18611b;
+            margin-bottom: 20px;
+        }
 
-    button {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 15px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      width: 100%;
-      font-size: 16px;
-      transition-duration: 0.4s;
-    }
-    
-    button:hover {
-        background-color: #45a049;
-        transition-duration: 0.2s;
-    }
+        .section {
+            margin-bottom: 20px;
+        }
 
-    .alert {
-        margin: 0 auto;
-      width: fit-content;
-      color: red;
-      font-weight: bold;
-      font-size: 14px;
-      text-align: center;
-      p{
-        border-radius: 8px;
-        padding: 10px 20px;
-        background-color: #ff000030;
-      }
-    }
-  </style>
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        input[type="file"],
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition-duration: 0.4s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transition-duration: 0.2s;
+        }
+
+        .alert {
+            margin: 0 auto;
+            width: fit-content;
+            color: red;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+
+            p {
+                border-radius: 8px;
+                padding: 10px 20px;
+                background-color: #ff000030;
+            }
+        }
+    </style>
 </head>
+
 <body>
     <div class="container">
         <div class="section">
@@ -91,7 +113,7 @@
                 <div id="pdfAlert" class="alert"></div>
             </div>
         </div>
-        
+
         <div class="section">
             <h2>Selecionar arquivo CSV</h2>
             <div class="input-group">
@@ -101,107 +123,115 @@
             </div>
         </div>
     </div>
+    <footer>
+        <a href="https://www.linkedin.com/in/clara-gon%C3%A7alves-ribeiro-66b07a213/" target="_blank">Clara Ribeiro
+            &copy; 2025</a>
+    </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script>
+        // Função para extrair e-mails de PDF
+        function extrairEmailsPDF() {
+            const input = document.getElementById('pdfFile');
+            const file = input.files[0];
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
-  <script>
-    // Função para extrair e-mails de PDF
-    function extrairEmailsPDF() {
-      const input = document.getElementById('pdfFile');
-      const file = input.files[0];
+            if (!file) {
+                document.getElementById('pdfAlert').innerHTML = "<p>Selecione um arquivo PDF.</p>";
+                setTimeout(() => { document.getElementById('pdfAlert').innerHTML = ""; }, 2000);
+                return;
+            }
 
-      if (!file) {
-        document.getElementById('pdfAlert').innerHTML = "<p>Selecione um arquivo PDF.</p>";
-        return;
-      }
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const typedArray = new Uint8Array(e.target.result);
 
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const typedArray = new Uint8Array(e.target.result);
+                // Usando pdf.js para ler o PDF
+                pdfjsLib.getDocument(typedArray).promise.then(function (pdf) {
+                    let texto = '';
+                    let emails = [];
 
-        // Usando pdf.js para ler o PDF
-        pdfjsLib.getDocument(typedArray).promise.then(function(pdf) {
-          let texto = '';
-          let emails = [];
-          
-          // Loop por todas as páginas do PDF
-          const numPages = pdf.numPages;
-          let paginaAtual = 1;
+                    // Loop por todas as páginas do PDF
+                    const numPages = pdf.numPages;
+                    let paginaAtual = 1;
 
-          function processarPagina() {
-            pdf.getPage(paginaAtual).then(function(page) {
-              page.getTextContent().then(function(textContent) {
-                const textoPagina = textContent.items.map(item => item.str).join(' ');
-                texto += textoPagina;
+                    function processarPagina() {
+                        pdf.getPage(paginaAtual).then(function (page) {
+                            page.getTextContent().then(function (textContent) {
+                                const textoPagina = textContent.items.map(item => item.str).join(' ');
+                                texto += textoPagina;
 
-                // Se não for a última página, processar a próxima
-                if (paginaAtual < numPages) {
-                  paginaAtual++;
-                  processarPagina();
-                } else {
-                  // Após extrair o texto de todas as páginas, extrair os e-mails
-                  const regex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-                  emails = texto.match(regex) || [];
-                  
-                  // Criando o arquivo .txt
-                  const blob = new Blob([emails.join("\n")], { type: "text/plain" });
-                  const link = document.createElement("a");
-                  link.href = URL.createObjectURL(blob);
-                  link.download = "emails_extraidos.txt";
-                  link.click();
+                                // Se não for a última página, processar a próxima
+                                if (paginaAtual < numPages) {
+                                    paginaAtual++;
+                                    processarPagina();
+                                } else {
+                                    // Após extrair o texto de todas as páginas, extrair os e-mails
+                                    const regex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+                                    emails = texto.match(regex) || [];
+
+                                    // Criando o arquivo .txt
+                                    const blob = new Blob([emails.join("\n")], { type: "text/plain" });
+                                    const link = document.createElement("a");
+                                    link.href = URL.createObjectURL(blob);
+                                    link.download = "emails_extraidos.txt";
+                                    link.click();
+                                }
+                            });
+                        });
+                    }
+
+                    processarPagina();
+                }).catch(function (error) {
+                    document.getElementById('pdfAlert').innerHTML = "<p>Erro ao processar o PDF: " + error.message + "</p>";
+                    setTimeout(() => { document.getElementById('pdfAlert').innerHTML = ""; }, 2000);
+                });
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Função para extrair e-mails de CSV
+        function extrairEmailsCSV() {
+            const input = document.getElementById('csvFile');
+            const file = input.files[0];
+
+            if (!file) {
+                document.getElementById('csvAlert').innerHTML = "<p>Selecione um arquivo CSV.</p>";
+                setTimeout(() => { document.getElementById('csvAlert').innerHTML = ""; }, 2000);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const linhas = e.target.result.split(/\r?\n/);
+                const cabecalho = linhas[0].split(",");
+                const posEmail = cabecalho.findIndex(c => c.trim().toLowerCase() === "email");
+
+                if (posEmail === -1) {
+                    document.getElementById('csvAlert').innerHTML = "<p>Coluna 'email' não encontrada.</p>";
+                    setTimeout(() => { document.getElementById('csvAlert').innerHTML = ""; }, 2000);
+                    return;
                 }
-              });
-            });
-          }
 
-          processarPagina();
-        }).catch(function(error) {
-            document.getElementById('pdfAlert').innerHTML = "<p>Erro ao processar o PDF: " + error.message + "</p>";
-        });
-      };
+                const emails = [];
 
-      reader.readAsArrayBuffer(file);
-    }
+                for (let i = 1; i < linhas.length; i++) {
+                    const cols = linhas[i].split(",");
+                    if (cols.length > posEmail) {
+                        const email = cols[posEmail].trim();
+                        if (email) emails.push(email);
+                    }
+                }
 
-    // Função para extrair e-mails de CSV
-    function extrairEmailsCSV() {
-      const input = document.getElementById('csvFile');
-      const file = input.files[0];
+                const blob = new Blob([emails.join("\n")], { type: "text/plain" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "emails_extraidos.txt";
+                link.click();
+            };
 
-      if (!file) {
-        document.getElementById('csvAlert').innerHTML = "<p>Selecione um arquivo CSV.</p>";
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const linhas = e.target.result.split(/\r?\n/);
-        const cabecalho = linhas[0].split(",");
-        const posEmail = cabecalho.findIndex(c => c.trim().toLowerCase() === "email");
-
-        if (posEmail === -1) {
-            document.getElementById('csvAlert').innerHTML = "<p>Coluna 'email' não encontrada.</p>";
-            return;
+            reader.readAsText(file);
         }
-
-        const emails = [];
-
-        for (let i = 1; i < linhas.length; i++) {
-          const cols = linhas[i].split(",");
-          if (cols.length > posEmail) {
-            const email = cols[posEmail].trim();
-            if (email) emails.push(email);
-          }
-        }
-
-        const blob = new Blob([emails.join("\n")], { type: "text/plain" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "emails_extraidos.txt";
-        link.click();
-      };
-
-      reader.readAsText(file);
-    }
-  </script>
+    </script>
 </body>
+
 </html>
