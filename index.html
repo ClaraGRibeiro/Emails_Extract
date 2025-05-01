@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Extrair E-mails do CSV</title>
+</head>
+<body>
+  <h2>Selecionar arquivo CSV</h2>
+  <input type="file" id="csvFile" accept=".csv">
+  <button onclick="extrairEmails()">Extrair e baixar .txt</button>
+
+  <script>
+    function extrairEmails() {
+      const input = document.getElementById('csvFile');
+      const file = input.files[0];
+
+      if (!file) {
+        alert("Selecione um arquivo CSV.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const linhas = e.target.result.split(/\r?\n/);
+        const cabecalho = linhas[0].split(",");
+        const posEmail = cabecalho.findIndex(c => c.trim().toLowerCase() === "email");
+
+        if (posEmail === -1) {
+          alert("Coluna 'email' não encontrada.");
+          return;
+        }
+
+        const emails = [];
+
+        for (let i = 1; i < linhas.length; i++) {
+          const cols = linhas[i].split(",");
+          if (cols.length > posEmail) {
+            const email = cols[posEmail].trim();
+            if (email) emails.push(email);
+          }
+        }
+
+        const blob = new Blob([emails.join("\n")], { type: "text/plain" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "emails_extraidos.txt";
+        link.click();
+      };
+
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
