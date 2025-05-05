@@ -312,8 +312,8 @@
                 resultadoInvalidos.style.display = "block";
                 const textoCompleto = 
                     `* Quando o formato é inválido, significa que o e-mail não está escrito no formato correto.\n* Um domínio sem MX é inválido, pois significa que não está configurado para receber e-mails.\n* Quando o erro na verificação acontece, significa que não foi possível verificar o domínio.
-                    \n\n===== ✅ Válidos (${validos.length}): =====\n` + validos.join("\n") +
-                    `\n\n===== ❌ Inv"álidos (${invalidos.length}): =====\n` + invalidos.join("\n");
+                    \n\n==================== ✅ Válidos (${validos.length}): ====================\n` + validos.join("\n") +
+                    `\n\n==================== ❌ Inválidos (${invalidos.length}): ====================\n` + invalidos.join("\n");
 
                 const blob = new Blob([textoCompleto], { type: "text/plain" });
                 const link = document.createElement("a");
