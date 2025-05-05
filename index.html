@@ -1,237 +1,326 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 
-<head>
-    <meta charset="UTF-8">
-    <title>Extrair E-mails do PDF ou CSV</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7fc;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: #333;
-        }
-
-        footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            text-align: center;
-            padding: 10px 0;
-            font-size: 14px;
-
-            a {
+    <head>
+        <meta charset="UTF-8">
+        <title>Extração / Validação de E-mails</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f7fc;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
                 color: #333;
-                text-decoration: none;
+            }
 
-                &:hover {
-                    color: black;
+            footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                text-align: center;
+                padding: 10px 0;
+                font-size: 14px;
+
+                a {
+                    color: #333;
+                    text-decoration: none;
+
+                    &:hover {
+                        color: black;
+                    }
                 }
             }
-        }
 
-        .container {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 500px;
-        }
-
-        h2 {
-            text-align: center;
-            color: #18611b;
-            margin-bottom: 20px;
-        }
-
-        .section {
-            margin-bottom: 20px;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        input[type="file"],
-        input[type="text"] {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-            transition-duration: 0.4s;
-        }
-
-        button:hover {
-            background-color: #45a049;
-            transition-duration: 0.2s;
-        }
-
-        .alert {
-            margin: 0 auto;
-            width: fit-content;
-            color: red;
-            font-weight: bold;
-            font-size: 14px;
-            text-align: center;
-
-            p {
+            .container {
+                overflow-y: auto;
+                background-color: #fff;
                 border-radius: 8px;
-                padding: 10px 20px;
-                background-color: #ff000030;
-            }
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <div class="section">
-            <h2>Selecionar arquivo PDF</h2>
-            <div class="input-group">
-                <input type="file" id="pdfFile" accept=".pdf">
-                <button onclick="extrairEmailsPDF()">Extrair e-mails do PDF</button>
-                <div id="pdfAlert" class="alert"></div>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>Selecionar arquivo CSV</h2>
-            <div class="input-group">
-                <input type="file" id="csvFile" accept=".csv">
-                <button onclick="extrairEmailsCSV()">Extrair e-mails do CSV</button>
-                <div id="csvAlert" class="alert"></div>
-            </div>
-        </div>
-    </div>
-    <footer>
-        <a href="https://www.linkedin.com/in/clara-gon%C3%A7alves-ribeiro-66b07a213/" target="_blank">Clara Ribeiro
-            &copy; 2025</a>
-    </footer>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
-    <script>
-        // Função para extrair e-mails de PDF
-        function extrairEmailsPDF() {
-            const input = document.getElementById('pdfFile');
-            const file = input.files[0];
-
-            if (!file) {
-                document.getElementById('pdfAlert').innerHTML = "<p>Selecione um arquivo PDF.</p>";
-                setTimeout(() => { document.getElementById('pdfAlert').innerHTML = ""; }, 2000);
-                return;
+                padding: 20px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                width: 100%;
+                max-width: 500px;
             }
 
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const typedArray = new Uint8Array(e.target.result);
+            h1, h2 {
+                text-align: center;
+                color: #18611b;
+                margin-bottom: 26px;
+            }
 
-                // Usando pdf.js para ler o PDF
-                pdfjsLib.getDocument(typedArray).promise.then(function (pdf) {
-                    let texto = '';
-                    let emails = [];
+            .section {
+                margin-bottom: 20px;
+                border-bottom: #333 solid 1px;
+                padding-bottom: 20px;
+            }
 
-                    // Loop por todas as páginas do PDF
-                    const numPages = pdf.numPages;
-                    let paginaAtual = 1;
+            .input-group {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
 
-                    function processarPagina() {
-                        pdf.getPage(paginaAtual).then(function (page) {
-                            page.getTextContent().then(function (textContent) {
-                                const textoPagina = textContent.items.map(item => item.str).join(' ');
-                                texto += textoPagina;
+            input[type="file"],
+            input[type="text"] {
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 16px;
+            }
 
-                                // Se não for a última página, processar a próxima
-                                if (paginaAtual < numPages) {
-                                    paginaAtual++;
-                                    processarPagina();
-                                } else {
-                                    // Após extrair o texto de todas as páginas, extrair os e-mails
-                                    const regex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-                                    emails = texto.match(regex) || [];
+            button {
+                background-color: #4CAF50;
+                color: white;
+                padding: 10px 15px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                width: 100%;
+                font-size: 16px;
+                transition-duration: 0.4s;
+            }
 
-                                    // Criando o arquivo .txt
-                                    const blob = new Blob([emails.join("\n")], { type: "text/plain" });
-                                    const link = document.createElement("a");
-                                    link.href = URL.createObjectURL(blob);
-                                    link.download = "emails_extraidos.txt";
-                                    link.click();
-                                }
-                            });
-                        });
-                    }
+            button:hover {
+                background-color: #45a049;
+                transition-duration: 0.2s;
+            }
 
-                    processarPagina();
-                }).catch(function (error) {
-                    document.getElementById('pdfAlert').innerHTML = "<p>Erro ao processar o PDF: " + error.message + "</p>";
+            .alert {
+                margin: 0 auto;
+                width: fit-content;
+                color: red;
+                font-weight: bold;
+                font-size: 14px;
+                text-align: center;
+
+                p {
+                    border-radius: 8px;
+                    padding: 10px 20px;
+                    background-color: #ff000030;
+                }
+            }
+            .validos{
+                background: #00ff0030;
+                padding: 0;
+            }
+            .invalidos{
+                background: #ff000030;
+                padding: 0;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>Extração / Validação de E-mails</h1>
+            <div class="section">
+                <h2>Selecionar arquivo PDF</h2>
+                <div class="input-group">
+                    <input type="file" id="pdfFile" accept=".pdf">
+                    <button onclick="extrairEmailsPDF()">Extrair e-mails do PDF</button>
+                    <div id="pdfAlert" class="alert"></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Selecionar arquivo CSV</h2>
+                <div class="input-group">
+                    <input type="file" id="csvFile" accept=".csv">
+                    <button onclick="extrairEmailsCSV()">Extrair e-mails do CSV</button>
+                    <div id="csvAlert" class="alert"></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Validar emails</h2>
+                <div class="input-group">
+                    <textarea id="emails" rows="10" cols="50" placeholder="Cole uma lista de e-mails, um por linha"></textarea><br>
+                    <button onclick="validarEmails()">Validar</button>
+                    <div id="validAlert" class="alert"></div>
+                </div>
+                <p style="display: none;" class="validos" id="resultadoValidos"></p>
+                <p style="display: none;" class="invalidos" id="resultadoInvalidos"></p>
+            </div>
+        </div>
+        <footer>
+            <a href="https://www.linkedin.com/in/clara-gon%C3%A7alves-ribeiro-66b07a213/" target="_blank">Clara Ribeiro
+                &copy; 2025</a>
+        </footer>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+        
+        <script>
+            // Função para extrair e-mails de PDF
+            function extrairEmailsPDF() {
+                const input = document.getElementById('pdfFile');
+                const file = input.files[0];
+
+                if (!file) {
+                    document.getElementById('pdfAlert').innerHTML = "<p>Selecione um arquivo PDF.</p>";
                     setTimeout(() => { document.getElementById('pdfAlert').innerHTML = ""; }, 2000);
-                });
-            };
+                    return;
+                }
 
-            reader.readAsArrayBuffer(file);
-        }
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const typedArray = new Uint8Array(e.target.result);
 
-        // Função para extrair e-mails de CSV
-        function extrairEmailsCSV() {
-            const input = document.getElementById('csvFile');
-            const file = input.files[0];
+                    // Usando pdf.js para ler o PDF
+                    pdfjsLib.getDocument(typedArray).promise.then(function (pdf) {
+                        let texto = '';
+                        let emails = [];
 
-            if (!file) {
-                document.getElementById('csvAlert').innerHTML = "<p>Selecione um arquivo CSV.</p>";
-                setTimeout(() => { document.getElementById('csvAlert').innerHTML = ""; }, 2000);
-                return;
+                        // Loop por todas as páginas do PDF
+                        const numPages = pdf.numPages;
+                        let paginaAtual = 1;
+
+                        function processarPagina() {
+                            pdf.getPage(paginaAtual).then(function (page) {
+                                page.getTextContent().then(function (textContent) {
+                                    const textoPagina = textContent.items.map(item => item.str).join(' ');
+                                    texto += textoPagina;
+
+                                    // Se não for a última página, processar a próxima
+                                    if (paginaAtual < numPages) {
+                                        paginaAtual++;
+                                        processarPagina();
+                                    } else {
+                                        // Após extrair o texto de todas as páginas, extrair os e-mails
+                                        const regex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+                                        emails = texto.match(regex) || [];
+
+                                        // Criando o arquivo .txt
+                                        const blob = new Blob([emails.join("\n")], { type: "text/plain" });
+                                        const link = document.createElement("a");
+                                        link.href = URL.createObjectURL(blob);
+                                        link.download = "emails_extraidos.txt";
+                                        link.click();
+                                    }
+                                });
+                            });
+                        }
+
+                        processarPagina();
+                    }).catch(function (error) {
+                        document.getElementById('pdfAlert').innerHTML = "<p>Erro ao processar o PDF: " + error.message + "</p>";
+                        setTimeout(() => { document.getElementById('pdfAlert').innerHTML = ""; }, 2000);
+                    });
+                };
+
+                reader.readAsArrayBuffer(file);
             }
 
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const linhas = e.target.result.split(/\r?\n/);
-                const cabecalho = linhas[0].split(",");
-                const posEmail = cabecalho.findIndex(c => c.trim().toLowerCase() === "email");
+            // Função para extrair e-mails de CSV
+            function extrairEmailsCSV() {
+                const input = document.getElementById('csvFile');
+                const file = input.files[0];
 
-                if (posEmail === -1) {
-                    document.getElementById('csvAlert').innerHTML = "<p>Coluna 'email' não encontrada.</p>";
+                if (!file) {
+                    document.getElementById('csvAlert').innerHTML = "<p>Selecione um arquivo CSV.</p>";
                     setTimeout(() => { document.getElementById('csvAlert').innerHTML = ""; }, 2000);
                     return;
                 }
 
-                const emails = [];
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const linhas = e.target.result.split(/\r?\n/);
+                    const cabecalho = linhas[0].split(",");
+                    const posEmail = cabecalho.findIndex(c => c.trim().toLowerCase() === "email");
 
-                for (let i = 1; i < linhas.length; i++) {
-                    const cols = linhas[i].split(",");
-                    if (cols.length > posEmail) {
-                        const email = cols[posEmail].trim();
-                        if (email) emails.push(email);
+                    if (posEmail === -1) {
+                        document.getElementById('csvAlert').innerHTML = "<p>Coluna 'email' não encontrada.</p>";
+                        setTimeout(() => { document.getElementById('csvAlert').innerHTML = ""; }, 2000);
+                        return;
                     }
+
+                    const emails = [];
+
+                    for (let i = 1; i < linhas.length; i++) {
+                        const cols = linhas[i].split(",");
+                        if (cols.length > posEmail) {
+                            const email = cols[posEmail].trim();
+                            if (email) emails.push(email);
+                        }
+                    }
+
+                    const blob = new Blob([emails.join("\n")], { type: "text/plain" });
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = "emails_extraidos.txt";
+                    link.click();
+                };
+
+                reader.readAsText(file);
+            }
+            
+            async function validarEmails() {
+                const input = document.getElementById("emails").value;
+                const validAlert = document.getElementById("validAlert");
+                const resultadoValidos = document.getElementById("resultadoValidos");
+                const resultadoInvalidos = document.getElementById("resultadoInvalidos");
+
+                if (input.trim() === "") {
+                    validAlert.innerHTML = "<p>Nenhum e-mail encontrado.</p>";
+                    setTimeout(() => { validAlert.innerHTML = ""; }, 2000);
+                    return;
                 }
 
-                const blob = new Blob([emails.join("\n")], { type: "text/plain" });
+                const linhas = input.split("\n");
+                const regexEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z]{2,})+$/;
+
+
+                const validos = [];
+                const invalidos = [];
+
+                for (const linha of linhas) {
+                    const email = linha.trim();
+                    validAlert.innerHTML = `<p>Verificando:<br>${email}</p>`;
+                    if (email === "") continue;
+
+                    if (!regexEmail.test(email)) {
+                        invalidos.push(`❌ ${email} [Formato inválido]`);
+                        continue;
+                    }
+
+                    const dominio = email.split("@")[1];
+
+                    try {
+                        const resposta = await fetch(`https://dns.google/resolve?name=${dominio}&type=MX`);
+                        const json = await resposta.json();
+                        const temMX = json.Answer && json.Answer.some(entry => entry.type === 15);
+                        resultadoValidos.textContent = "";
+                        resultadoValidos.style.display = "none";
+                        resultadoInvalidos.textContent = "";
+                        resultadoInvalidos.style.display = "none";
+                        
+                        if (temMX) {
+                            validos.push(`✅ ${email}`);
+                        } else {
+                            invalidos.push(`❌ ${email} [Domínio sem MX]`);
+                        }
+                        
+                    } catch (err) {
+                        invalidos.push(`❌ ${email} [Erro na verificação]`);
+                    }
+                }
+                validAlert.innerHTML = "";
+                resultadoValidos.textContent = `✅ Foram encontrados (${validos.length}) emails válidos!`;
+                resultadoInvalidos.textContent = `❌ Foram encontrados (${invalidos.length}) emails inválidos!`;
+                resultadoValidos.style.display = "block";
+                resultadoInvalidos.style.display = "block";
+                const textoCompleto = 
+                    `* Quando o formato é inválido, significa que o e-mail não está escrito no formato correto.\n* Um domínio sem MX é inválido, pois significa que não está configurado para receber e-mails.\n* Quando o erro na verificação acontece, significa que não foi possível verificar o domínio.
+                    \n\n===== Válidos (${validos.length}): =====\n` + validos.join("\n") +
+                    `\n\n===== Inválidos (${invalidos.length}): =====\n` + invalidos.join("\n");
+
+                const blob = new Blob([textoCompleto], { type: "text/plain" });
                 const link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
-                link.download = "emails_extraidos.txt";
+                link.download = "emails_verificados.txt";
                 link.click();
-            };
-
-            reader.readAsText(file);
-        }
-    </script>
-</body>
-
+            }
+        </script>
+    </body>
 </html>
